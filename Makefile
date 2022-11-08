@@ -32,15 +32,19 @@ helm_dry_run: ## HELM dry run.
 	helm upgrade --dry-run --debug -n backend --install --set image.repository=test --set image.tag=0.0.1 -f ./deployments/helm/values.yaml backend ./deployments/helm
 
 ##
-##Application
+##Ap  doplication
 ##-------
 
 .PHONY: bot
-bot: ## Start GRPC server.
+bot:
 	go run cmd/*.go bot run
 
+.PHONY: server
+server:
+	go run cmd/*.go server run
+
 .PHONY: bot_send
-bot_send: ## Start GRPC server.
+bot_send:
 	go run cmd/*.go bot send
 
 .PHONY: migrations_migrate
@@ -48,7 +52,7 @@ migrations_migrate: ## Run migrations.
 	go run cmd/*.go migrations migrate
 
 .PHONY: migrations_create
-migrations_create: ## Generate new migration in ./migrations/ folder. Example: make migrations_create n=test.
+migrations_create:
 	go run cmd/*.go migrations create ${n}
 
 .PHONY: update_api

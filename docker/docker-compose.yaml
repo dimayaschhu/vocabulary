@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  db:
+  postgres_db:
     image: postgres:13
     command: ["postgres", "-c", "fsync=0", "-c", "full_page_writes=off", "-c", "bgwriter_lru_maxpages=0", "-c", "synchronous_commit=off", "-c", "log_statement=all", "-c", "wal_level=logical"]
     ports:
@@ -12,3 +12,26 @@ services:
       - POSTGRES_DB=backend
       - POSTGRES_USER=backend
       - POSTGRES_PASSWORD=12345
+  db:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
+    ports:
+      - 27018:27017
+    volumes:
+      - mongodb_container:/data/db
+
+  work:
+    image: mongo:4.4.17
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
+    ports:
+      - 27017:27017
+    volumes:
+      - /var/lib/mongo/data/db
+
+
+volumes:
+  mongodb_container:

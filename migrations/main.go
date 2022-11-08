@@ -3,7 +3,7 @@ package migrations
 import "gorm.io/gorm"
 
 type Word struct {
-	Id        int
+	Id        int `gorm:"primaryKey;autoIncrement"`
 	Name      string
 	Translate string
 	Lesson    int

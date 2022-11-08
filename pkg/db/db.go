@@ -1,11 +1,36 @@
 package db
 
 import (
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewDB() (*gorm.DB, error) {
-	dsn := "host=localhost user=backend password=12345 dbname=backend port=5435"
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+func NewDB() (*mongo.Client, error) {
+	return mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27018"))
+}
+
+type Config interface {
+	GetNameDB() string
+}
+
+type ConfigTest struct {
+}
+
+func NewConfigTest() Config {
+	return &ConfigTest{}
+}
+
+func (c *ConfigTest) GetNameDB() string {
+	return "vocabularyTest"
+}
+
+type ConfigProd struct{}
+
+func NewConfigProd() Config {
+	return &ConfigProd{}
+}
+
+func (c *ConfigProd) GetNameDB() string {
+	return "vocabulary"
 }

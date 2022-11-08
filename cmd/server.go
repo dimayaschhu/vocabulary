@@ -2,23 +2,23 @@ package main
 
 import (
 	"context"
-	"github.com/dimayaschhu/vocabulary/module/bot"
-	cmd2 "github.com/dimayaschhu/vocabulary/pkg/cmd"
+	"github.com/dimayaschhu/vocabulary/module/web"
 	"github.com/dimayaschhu/vocabulary/pkg/di"
+	"github.com/dimayaschhu/vocabulary/pkg/httpserver"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
 
-func NewBotCommand() *cobra.Command {
+func NewServer() *cobra.Command {
 	migrationsCmd := &cobra.Command{
-		Use: "bot",
+		Use: "server",
 	}
 
 	runCmd := &cobra.Command{
 		Use:   "run",
 		Short: "Execute migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			botMain()
+			serverMain()
 			return nil
 		},
 	}
@@ -28,11 +28,11 @@ func NewBotCommand() *cobra.Command {
 	return migrationsCmd
 }
 
-func botMain() {
+func serverMain() {
 	fxOptions := di.AppProviders()
-	fxOptions = append(fxOptions, bot.Module)
-	fxOptions = append(fxOptions, fx.Invoke(func(register *cmd2.Register) {
-		register.Run("bot_run")
+	fxOptions = append(fxOptions, web.Module)
+	fxOptions = append(fxOptions, fx.Invoke(func(server *httpserver.Router) {
+		server.GetEngine().Run()
 	}))
 
 	app := fx.New(fxOptions...)

@@ -12,6 +12,7 @@ func main() {
 
 	rootCmd.AddCommand(NewMigrationsCommand())
 	rootCmd.AddCommand(NewBotCommand())
+	rootCmd.AddCommand(NewServer())
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)

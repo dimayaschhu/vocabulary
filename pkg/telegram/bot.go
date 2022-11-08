@@ -6,7 +6,22 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Run() {
+type Bot interface {
+	SendMessageWithButton(chatId int64, msg string, buttons []string)
+	SendMessage(chatId int64, msg string)
+	GetUpdatesChan() tgbotapi.UpdatesChannel
+	PullMessage(msg string)
+}
+
+type TelegramBot struct {
+	bot *tgbotapi.BotAPI
+}
+
+func NewTelegramBot() Bot {
+	return &TelegramBot{}
+}
+
+func getBot() *tgbotapi.BotAPI {
 	bot, err := tgbotapi.NewBotAPI("5673296847:AAE2Z2Bz1uFt1SVL6O3r3khshGBbAnbbHeg")
 	if err != nil {
 		log.Panic(err)
@@ -14,45 +29,68 @@ func Run() {
 
 	bot.Debug = true
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	return bot
+}
 
+func (t *TelegramBot) SendMessageWithButton(chatId int64, text string, buttons []string) {
+	t.bot = getBot()
+	var k []tgbotapi.KeyboardButton
+	for _, button := range buttons {
+		k = append(k, tgbotapi.NewKeyboardButton(button))
+	}
+
+	numericKeyboard := tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(k...))
+
+	msg := tgbotapi.NewMessage(chatId, text)
+	msg.ReplyMarkup = numericKeyboard
+	t.bot.Send(msg)
+}
+
+func (t *TelegramBot) SendMessage(chatId int64, text string) {
+	t.bot = getBot()
+	msg := tgbotapi.NewMessage(chatId, text)
+	t.bot.Send(msg)
+}
+
+func (t *TelegramBot) GetUpdatesChan() tgbotapi.UpdatesChannel {
+	t.bot = getBot()
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
-		}
-	}
+	return t.bot.GetUpdatesChan(u)
 }
 
-func Send() {
-	bot, err := tgbotapi.NewBotAPI("5673296847:AAE2Z2Bz1uFt1SVL6O3r3khshGBbAnbbHeg")
-	if err != nil {
-		log.Panic(err)
-	}
-	bot.Debug = true
-	msg := tgbotapi.NewMessage(563738410, "test")
-	bot.Send(msg)
+func (t *TelegramBot) PullMessage(msg string) {}
 
-	article := tgbotapi.NewInlineQueryResultArticle(563738410, "Echo", update.InlineQuery.Query)
-	article.Description = update.InlineQuery.Query
+type BotTest struct {
+	c chan tgbotapi.Update
+}
 
-	inlineConf := InlineConfig{
-		InlineQueryID: update.InlineQuery.ID,
-		IsPersonal:    true,
-		CacheTime:     0,
-		Results:       []interface{}{article},
-	}
+func NewBotTest() Bot {
+	return &BotTest{c: make(chan tgbotapi.Update)}
+}
 
-	if _, err := bot.Request(inlineConf); err != nil {
-		log.Println(err)
+func (t *BotTest) SendMessageWithButton(chatId int64, msg string, buttons []string) {
+
+}
+
+func (t *BotTest) SendMessage(chatId int64, msg string) {
+
+}
+
+func (t *BotTest) GetUpdatesChan() tgbotapi.UpdatesChannel {
+	return t.c
+}
+
+func (t *BotTest) PullMessage(data string) {
+	var msg = tgbotapi.Update{
+		UpdateID: 1,
+		Message: &tgbotapi.Message{
+			Text: data,
+			From: &tgbotapi.User{ID: 234},
+		},
 	}
+	go func() {
+		t.c <- msg
+	}()
 }
